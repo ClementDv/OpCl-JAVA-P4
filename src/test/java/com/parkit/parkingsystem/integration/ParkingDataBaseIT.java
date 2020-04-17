@@ -44,7 +44,6 @@ public class ParkingDataBaseIT {
 
     @AfterAll
     private static void tearDown(){
-
     }
 
     @Test
