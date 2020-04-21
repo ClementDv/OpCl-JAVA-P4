@@ -24,7 +24,11 @@ public class FareCalculatorService {
         long durationHours = ChronoUnit.HOURS.between(inTime, outTime);
         switch (ticket.getParkingSpot().getParkingType()) {
             case CAR: {
-                if (durationMinutes <= 60) {
+                if (durationMinutes <= 30) {
+                    ticket.setPrice(0);
+                    break;
+                }
+                else if (durationMinutes <= 60) {
                     ticket.setPrice(durationMinutes * (Fare.CAR_RATE_PER_MINUTE));
                     break;
                 } else {
@@ -33,7 +37,11 @@ public class FareCalculatorService {
                 }
             }
             case BIKE: {
-                if (durationMinutes <= 60) {
+                if (durationMinutes <= 30) {
+                    ticket.setPrice(0);
+                    break;
+                }
+                else if (durationMinutes <= 60) {
                     ticket.setPrice(durationMinutes * (Fare.BIKE_RATE_PER_MINUTE));
                     break;
                 } else {
