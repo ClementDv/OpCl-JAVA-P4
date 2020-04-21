@@ -1,5 +1,6 @@
 package com.parkit.parkingsystem.model;
 
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -48,7 +49,7 @@ public class Ticket {
     }
 
     public void setInTime(Date inTime) {
-        this.inTime = inTime;
+        this.inTime = inTime == null ? null : new Date(inTime.getTime() / 1000L * 1000L);
     }
 
     public Date getOutTime() {
@@ -56,6 +57,6 @@ public class Ticket {
     }
 
     public void setOutTime(Date outTime) {
-        this.outTime = outTime;
+        this.outTime = outTime == null ? null : new Date(outTime.getTime() / 1000L * 1000L);
     }
 }
