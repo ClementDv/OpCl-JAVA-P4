@@ -1,7 +1,5 @@
 package com.parkit.parkingsystem.model;
 
-import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.Date;
 
 public class Ticket {
@@ -11,6 +9,7 @@ public class Ticket {
     private double price;
     private Date inTime;
     private Date outTime;
+    private boolean paid;
 
     public int getId() {
         return id;
@@ -58,5 +57,13 @@ public class Ticket {
 
     public void setOutTime(Date outTime) {
         this.outTime = outTime == null ? null : new Date(outTime.getTime() / 1000L * 1000L);
+    }
+
+    public void setPaid(boolean paid) {
+        this.paid = paid;
+    }
+
+    public boolean getPaid() {
+        return this.paid;
     }
 }
