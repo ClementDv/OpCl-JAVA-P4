@@ -3,6 +3,8 @@ package com.parkit.parkingsystem.service;
 import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -10,8 +12,7 @@ import java.util.Date;
 
 public class FareCalculatorService {
 
-    public void calculateFare(Ticket ticket)
-    {
+    public void calculateFare(Ticket ticket) {
         calculateFareReduce(ticket, 0);
     }
 
@@ -29,33 +30,46 @@ public class FareCalculatorService {
         long durationHours = ChronoUnit.HOURS.between(inTime, outTime);
         switch (ticket.getParkingSpot().getParkingType()) {
             case CAR: {
-                if (durationMinutes <= 30) {
-                    ticket.setPrice(0);
-                    break;
-                }
-                else if (durationMinutes <= 60) {
-                    ticket.setPrice((durationMinutes * Fare.CAR_RATE_PER_MINUTE) * (1 - (reducePercent / 100)));
-                    break;
-                } else {
-                    ticket.setPrice((durationHours * Fare.CAR_RATE_PER_HOUR) * (1 - (reducePercent / 100)));
-                    break;
-                }
+                calculateCarFare(ticket, durationMinutes, durationHours, reducePercent);
+                break;
             }
             case BIKE: {
-                if (durationMinutes <= 30) {
-                    ticket.setPrice(0);
-                    break;
-                }
-                else if (durationMinutes <= 60) {
-                    ticket.setPrice((durationMinutes * Fare.BIKE_RATE_PER_MINUTE) * (1 - (reducePercent / 100)));
-                    break;
-                } else {
-                    ticket.setPrice((durationHours * Fare.BIKE_RATE_PER_HOUR) * (1 - (reducePercent / 100)));
-                    break;
-                }
+                calculateBikeFare(ticket, durationMinutes, durationHours, reducePercent);
+                break;
             }
             default:
                 throw new IllegalArgumentException("Unkown Parking Type");
         }
     }
+
+    public void calculateCarFare(Ticket ticket, long durationMinutes, long durationHours, double reducePercent) {
+        double price;
+        if (durationMinutes <= 30) {
+            price = 0;
+        } else if (durationMinutes < 60) {
+            price = (durationMinutes * Fare.CAR_RATE_PER_MINUTE) * (1 - (reducePercent / 100));
+        } else {
+            price = (durationHours * Fare.CAR_RATE_PER_HOUR) * (1 - (reducePercent / 100));
+        }
+        ticket.setPrice(roundToHundred(price));
+    }
+
+    public void calculateBikeFare(Ticket ticket, long durationMinutes, long durationHours, double reducePercent) {
+        double price;
+        if (durationMinutes <= 30) {
+            price = 0;
+        } else if (durationMinutes < 60) {
+            price = (durationMinutes * Fare.BIKE_RATE_PER_MINUTE) * (1 - (reducePercent / 100));
+        } else {
+            price = (durationHours * Fare.BIKE_RATE_PER_HOUR) * (1 - (reducePercent / 100));
+        }
+        ticket.setPrice(roundToHundred(price));
+    }
+
+    public static double roundToHundred(double nb) {
+        BigDecimal bd = new BigDecimal(nb);
+        bd = bd.setScale(2, RoundingMode.HALF_EVEN);
+        return bd.doubleValue();
+    }
+
 }

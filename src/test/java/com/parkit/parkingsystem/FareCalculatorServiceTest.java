@@ -12,6 +12,8 @@ import org.mockito.internal.matchers.Null;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 public class FareCalculatorServiceTest {
@@ -94,7 +96,7 @@ public class FareCalculatorServiceTest {
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket);
-        assertEquals((0.75 * Fare.BIKE_RATE_PER_HOUR), ticket.getPrice());
+        assertEquals((roundToHundred(0.75 * Fare.BIKE_RATE_PER_HOUR)), ticket.getPrice());
     }
 
     @Test
@@ -108,7 +110,7 @@ public class FareCalculatorServiceTest {
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket);
-        assertEquals((0.75 * Fare.CAR_RATE_PER_HOUR), ticket.getPrice());
+        assertEquals((roundToHundred(0.75 * Fare.CAR_RATE_PER_HOUR)), ticket.getPrice());
     }
 
     @Test
@@ -178,5 +180,11 @@ public class FareCalculatorServiceTest {
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         assertThrows(IllegalArgumentException.class, () -> fareCalculatorService.calculateFare(ticket));
+    }
+
+    public static double roundToHundred(double nb) {
+        BigDecimal bd = new BigDecimal(nb);
+        bd = bd.setScale(2, RoundingMode.HALF_EVEN);
+        return bd.doubleValue();
     }
 }

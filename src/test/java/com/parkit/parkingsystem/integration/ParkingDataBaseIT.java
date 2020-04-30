@@ -1,29 +1,24 @@
 package com.parkit.parkingsystem.integration;
 
-import com.parkit.parkingsystem.FareCalculatorServiceTest;
-import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
 import com.parkit.parkingsystem.integration.service.DataBasePrepareService;
 import com.parkit.parkingsystem.model.Ticket;
-import com.parkit.parkingsystem.service.FareCalculatorService;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 import static com.parkit.parkingsystem.constants.Fare.CAR_RATE_PER_HOUR;
 import static com.parkit.parkingsystem.constants.Fare.CAR_RATE_PER_MINUTE;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +30,8 @@ public class ParkingDataBaseIT {
     private static DataBasePrepareService dataBasePrepareService;
 
     private static final String vehicleRegNumberTest = "ABCDEF";
-    private static final long minutesParkingTime = 48;
+    private static final long minutesParkingTime = 60;
+    private static final double reducePercent = 5;
 
     @Mock
     private static InputReaderUtil inputReaderUtil;
@@ -56,8 +52,9 @@ public class ParkingDataBaseIT {
         dataBasePrepareService.clearDataBaseEntries();
     }
 
-    @AfterAll
-    private static void tearDown() {
+    @AfterEach
+    private void tearDownPerTest() {
+        dataBasePrepareService.clearDataBaseEntries();
     }
 
     @Test
@@ -79,15 +76,65 @@ public class ParkingDataBaseIT {
         parkingService.processExitingVehicle();
         Ticket ticketTest = ticketDAO.getTicket(vehicleRegNumberTest);
         assertNotNull(ticketTest);
-        if (minutesParkingTime <= 30) {
-            assertEquals(0, ticketTest.getPrice());
-        } else if (minutesParkingTime <= 60) {
-            assertEquals(minutesParkingTime * CAR_RATE_PER_MINUTE, ticketTest.getPrice());
-        } else {
-            assertEquals(((double) minutesParkingTime / 60) * CAR_RATE_PER_HOUR, ticketTest.getPrice());
-        }
+        checkCalculateFarFromDB(ticketTest);
         assertTrue(ticketTest.getPaid());
         assertTrue(ticketTest.getParkingSpot().isAvailable());
         //TODO: check that the fare generated and out time are populated correctly in the database
+    }
+
+    public void checkCalculateFarFromDB(Ticket ticketTest) {
+        switch (ticketTest.getParkingSpot().getParkingType()) {
+            case CAR: {
+                if (ticketDAO.isRecurrentUser(vehicleRegNumberTest, 3)) {
+                    checkCalculateRecurrentCarFarFromDB(ticketTest);
+                } else {
+                    checkCalculateCarFareFromDB(ticketTest);
+                }
+                break;
+            }
+            case BIKE: {
+                break;
+            }
+        }
+    }
+
+    private void checkCalculateRecurrentCarFarFromDB(Ticket ticketTest) {
+        double price;
+        if (minutesParkingTime <= 30) {
+            price = 0;
+        } else if (minutesParkingTime < 60) {
+            price = (minutesParkingTime * CAR_RATE_PER_MINUTE) * (1 - (reducePercent / 100));
+        } else {
+            price = ((double) (minutesParkingTime / 60) * CAR_RATE_PER_HOUR) * (1 - (reducePercent / 100));
+        }
+        price = roundToHundred(price);
+        assertEquals(price, ticketTest.getPrice());
+    }
+
+    public void checkCalculateCarFareFromDB(Ticket ticketTest) {
+        double price;
+        if (minutesParkingTime <= 30) {
+            price = 0;
+        } else if (minutesParkingTime < 60) {
+            price = minutesParkingTime * CAR_RATE_PER_MINUTE;
+        } else {
+            price = (double) (minutesParkingTime / 60) * CAR_RATE_PER_HOUR;
+        }
+        price = roundToHundred(price);
+        assertEquals(price, ticketTest.getPrice());
+    }
+
+    public static double roundToHundred(double nb) {
+        BigDecimal bd = new BigDecimal(nb);
+        bd = bd.setScale(2, RoundingMode.HALF_EVEN);
+        return bd.doubleValue();
+    }
+
+
+    @Test
+    public void recurrentThreeTimeCarUserTest() {
+        testParkingLotExit();
+        testParkingLotExit();
+        testParkingLotExit();
     }
 }

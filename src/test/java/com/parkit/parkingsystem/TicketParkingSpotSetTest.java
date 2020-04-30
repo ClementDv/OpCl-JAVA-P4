@@ -31,12 +31,14 @@ public class TicketParkingSpotSetTest {
         ticket.setInTime(inTime);
         Date outTime = new Date(System.currentTimeMillis());
         ticket.setOutTime(outTime);
+        ticket.setPaid(true);
         assertEquals(12, ticket.getId());
         assertSame(parkingSpot, ticket.getParkingSpot());
         assertEquals("ABCDEF", ticket.getVehicleRegNumber());
         assertEquals(10, ticket.getPrice());
         assertEquals(inTime.getTime() / 1000L * 1000L, ticket.getInTime().getTime());
         assertEquals(outTime.getTime() / 1000L * 1000L, ticket.getOutTime().getTime());
+        assertTrue(ticket.getPaid());
     }
 
     @Test

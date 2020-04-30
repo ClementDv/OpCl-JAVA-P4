@@ -104,10 +104,14 @@ public class ParkingService {
         try {
             String vehicleRegNumber = getVehichleRegNumber();
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
-            System.out.println("Outtime = " + ticket.getOutTime());
             Date outTime = new Date();
             ticket.setOutTime(outTime);
-            fareCalculatorService.calculateFare(ticket);
+            if (ticketDAO.isRecurrentUser(ticket.getVehicleRegNumber(), 2)) {
+                fareCalculatorService.calculateFareReduce(ticket, 5);
+            }
+            else {
+                fareCalculatorService.calculateFare(ticket);
+            }
             if (ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
@@ -121,5 +125,4 @@ public class ParkingService {
             logger.error("Unable to process exiting vehicle", e);
         }
     }
-
 }
