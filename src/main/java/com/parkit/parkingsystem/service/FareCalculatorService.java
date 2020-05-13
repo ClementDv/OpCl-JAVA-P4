@@ -12,29 +12,39 @@ import java.util.Date;
 
 public class FareCalculatorService {
 
-    public void calculateFare(Ticket ticket) {
+    private static final int FREE_TIME = 30;
+    private static final int HOUR_MINS_TIME = 60;
+    private static final int DIVIDE_HUNDRED_PERCENT = 100;
+
+    public void calculateFare(final Ticket ticket) {
         calculateFareReduce(ticket, 0);
     }
 
-    public void calculateFareReduce(Ticket ticket, double reducePercent) {
-        if ((ticket.getOutTime() == null) || (ticket.getOutTime().before(new Date(ticket.getInTime().getTime())))) {
-            throw new IllegalArgumentException("Out time provided is incorrect:" + ticket.getOutTime());
+    public void calculateFareReduce(
+            final Ticket ticket, final double reducePercent) {
+        if ((ticket.getOutTime() == null)
+                || (ticket.getOutTime().before(
+                        new Date(ticket.getInTime().getTime())))) {
+            throw new IllegalArgumentException(
+                    "Out time provided is incorrect:" + ticket.getOutTime());
         }
         ticket.setPaid(true);
-        LocalDateTime inTime = LocalDateTime.ofInstant(ticket.getInTime().toInstant(), ZoneId.systemDefault());
-        LocalDateTime outTime = LocalDateTime.ofInstant(ticket.getOutTime().toInstant(), ZoneId.systemDefault());
-
-        //TODO: Some tests are failing here. Need to check if this logic is correct
+        LocalDateTime inTime = LocalDateTime.ofInstant(
+                ticket.getInTime().toInstant(), ZoneId.systemDefault());
+        LocalDateTime outTime = LocalDateTime.ofInstant(
+                ticket.getOutTime().toInstant(), ZoneId.systemDefault());
 
         long durationMinutes = ChronoUnit.MINUTES.between(inTime, outTime);
         long durationHours = ChronoUnit.HOURS.between(inTime, outTime);
         switch (ticket.getParkingSpot().getParkingType()) {
             case CAR: {
-                calculateCarFare(ticket, durationMinutes, durationHours, reducePercent);
+                calculateCarFare(
+                        ticket, durationMinutes, durationHours, reducePercent);
                 break;
             }
             case BIKE: {
-                calculateBikeFare(ticket, durationMinutes, durationHours, reducePercent);
+                calculateBikeFare(
+                        ticket, durationMinutes, durationHours, reducePercent);
                 break;
             }
             default:
@@ -42,34 +52,41 @@ public class FareCalculatorService {
         }
     }
 
-    public void calculateCarFare(Ticket ticket, long durationMinutes, long durationHours, double reducePercent) {
+    public void calculateCarFare(
+           final Ticket ticket, final long durationMinutes,
+            final long durationHours, final double reducePercent) {
         double price;
-        if (durationMinutes <= 30) {
+        if (durationMinutes <= FREE_TIME) {
             price = 0;
-        } else if (durationMinutes < 60) {
-            price = (durationMinutes * Fare.CAR_RATE_PER_MINUTE) * (1 - (reducePercent / 100));
+        } else if (durationMinutes < HOUR_MINS_TIME) {
+            price = (durationMinutes * Fare.CAR_RATE_PER_MINUTE)
+                    * (1 - (reducePercent / DIVIDE_HUNDRED_PERCENT));
         } else {
-            price = (durationHours * Fare.CAR_RATE_PER_HOUR) * (1 - (reducePercent / 100));
+            price = (durationHours * Fare.CAR_RATE_PER_HOUR)
+                    * (1 - (reducePercent / DIVIDE_HUNDRED_PERCENT));
         }
         ticket.setPrice(roundToHundred(price));
     }
 
-    public void calculateBikeFare(Ticket ticket, long durationMinutes, long durationHours, double reducePercent) {
+    public void calculateBikeFare(
+            final Ticket ticket, final long durationMinutes,
+            final long durationHours, final double reducePercent) {
         double price;
-        if (durationMinutes <= 30) {
+        if (durationMinutes <= FREE_TIME) {
             price = 0;
-        } else if (durationMinutes < 60) {
-            price = (durationMinutes * Fare.BIKE_RATE_PER_MINUTE) * (1 - (reducePercent / 100));
+        } else if (durationMinutes < HOUR_MINS_TIME) {
+            price = (durationMinutes * Fare.BIKE_RATE_PER_MINUTE)
+                    * (1 - (reducePercent / DIVIDE_HUNDRED_PERCENT));
         } else {
-            price = (durationHours * Fare.BIKE_RATE_PER_HOUR) * (1 - (reducePercent / 100));
+            price = (durationHours * Fare.BIKE_RATE_PER_HOUR)
+                    * (1 - (reducePercent / DIVIDE_HUNDRED_PERCENT));
         }
         ticket.setPrice(roundToHundred(price));
     }
 
-    public static double roundToHundred(double nb) {
+    public static double roundToHundred(final double nb) {
         BigDecimal bd = new BigDecimal(nb);
         bd = bd.setScale(2, RoundingMode.HALF_EVEN);
         return bd.doubleValue();
     }
-
 }
