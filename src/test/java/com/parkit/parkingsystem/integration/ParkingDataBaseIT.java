@@ -66,7 +66,6 @@ public class ParkingDataBaseIT {
         assertNotNull(ticketTest);
         assertEquals(vehicleRegNumberTest, ticketTest.getVehicleRegNumber());
         assertFalse(ticketTest.getParkingSpot().isAvailable());
-        //TODO: check that a ticket is actualy saved in DB and Parking table is updated with availability
     }
 
     @Test
@@ -79,7 +78,6 @@ public class ParkingDataBaseIT {
         checkCalculateFarFromDB(ticketTest);
         assertTrue(ticketTest.getPaid());
         assertTrue(ticketTest.getParkingSpot().isAvailable());
-        //TODO: check that the fare generated and out time are populated correctly in the database
     }
 
     public void checkCalculateFarFromDB(Ticket ticketTest) {

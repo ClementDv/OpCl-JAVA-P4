@@ -55,7 +55,8 @@ public class TicketDAO {
                     con.prepareStatement(DBConstants.SAVE_TICKET)) {
                 ps.setInt(TICKET_ID_SAVE_DB, ticket.getParkingSpot().getId());
                 ps.setString(
-                        VEHICLE_REG_NUMBER_SAVE_DB, ticket.getVehicleRegNumber());
+                        VEHICLE_REG_NUMBER_SAVE_DB,
+                        ticket.getVehicleRegNumber());
                 ps.setDouble(
                         TICKET_PRICE_SAVE_DB, ticket.getPrice());
                 ps.setTimestamp(
@@ -64,7 +65,8 @@ public class TicketDAO {
                 ps.setTimestamp(
                         TICKET_OUT_TIME_SAVE_DB, (
                                 ticket.getOutTime() == null) ? null
-                                : (new Timestamp(ticket.getOutTime().getTime())));
+                                : (new Timestamp(
+                                        ticket.getOutTime().getTime())));
                 ps.setBoolean(TICKET_PAID_SAVE_DB, ticket.getPaid());
                 return ps.execute();
             }
@@ -77,7 +79,8 @@ public class TicketDAO {
     public Ticket getTicket(final String vehicleRegNumber) {
         Ticket ticket = null;
         try (Connection con = dataBaseConfig.getConnection()) {
-            try (PreparedStatement ps = con.prepareStatement(DBConstants.GET_TICKET)) {
+            try (PreparedStatement ps =
+                         con.prepareStatement(DBConstants.GET_TICKET)) {
                 //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE,
                 //IN_TIME, OUT_TIME, IS_PAID, P_AVAILABLE ,P_TYPE)
                 ps.setString(SET_REQUEST_REG_NUMBER_GET_BD, vehicleRegNumber);
@@ -86,15 +89,18 @@ public class TicketDAO {
                         ticket = new Ticket();
                         ParkingSpot parkingSpot = new ParkingSpot(
                                 rs.getInt(PARKING_NUMBER_GET_DB),
-                                ParkingType.valueOf(rs.getString(PARKING_TYPE_GET_DB)),
+                                ParkingType.valueOf(rs.getString(
+                                        PARKING_TYPE_GET_DB)),
                                 rs.getBoolean(PARKING_AVAILABLE_GET_DB));
                         ticket.setParkingSpot(parkingSpot);
                         ticket.setId(rs.getInt(TICKET_ID_GET_DB));
                         ticket.setVehicleRegNumber(rs.getString(
                                 VEHICLE_REG_NUMBER_GET_DB));
                         ticket.setPrice(rs.getDouble(TICKET_PRICE_GET_DB));
-                        ticket.setInTime(rs.getTimestamp(TICKET_IN_TIME_GET_DB));
-                        ticket.setOutTime(rs.getTimestamp(TICKET_OUT_TIME_GET_DB));
+                        ticket.setInTime(rs.getTimestamp(
+                                TICKET_IN_TIME_GET_DB));
+                        ticket.setOutTime(rs.getTimestamp(
+                                TICKET_OUT_TIME_GET_DB));
                         ticket.setPaid(rs.getBoolean(TICKET_PAID_GET_DB));
                     }
                 }
@@ -129,7 +135,8 @@ public class TicketDAO {
             try (PreparedStatement ps =
                          con.prepareStatement(DBConstants.GET_RECURRENT_USER)) {
                 //ID
-                ps.setString(SET_REQUEST_REG_NUMBER_RECURRENT_BD, vehicleRegNumber);
+                ps.setString(SET_REQUEST_REG_NUMBER_RECURRENT_BD,
+                        vehicleRegNumber);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         if (rs.getInt(GET_COUNT_RECURRENT_BD)
